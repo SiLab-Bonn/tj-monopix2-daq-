@@ -43,6 +43,7 @@ class ExtTriggerScan(ScanBase):
         self.daq.configure_tlu_veto_pulse(veto_length=500)
         if max_triggers:
             self.daq.configure_tlu_module(max_triggers=max_triggers)
+        # self.daq.configure_tlu_module(max_triggers=max_triggers, aidamode=True) TODO: add in estbench.yaml
 
     def _scan(self, scan_timeout=False, max_triggers=1000, **_):
         def timed_out():
