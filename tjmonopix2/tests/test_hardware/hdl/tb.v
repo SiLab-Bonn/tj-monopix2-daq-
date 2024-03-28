@@ -209,8 +209,10 @@ bram_fifo
 
 monopix2 dut (
     .RESETB_EXT(1'b1),  // No need to reset chip in tests
-    .ANALOG_HIT(ANALOG_HIT),
-    
+    .ANALOG_HIT(),
+
+    .CHIP_ID(2'b0),
+
     .LVDS_CMD(~LVDS_CMD),  // invert for simulation only
     .LVDS_CMD_CLK(LVDS_CMD_CLK), 
     .LVDS_SER_CLK(LVDS_SER_CLK), 

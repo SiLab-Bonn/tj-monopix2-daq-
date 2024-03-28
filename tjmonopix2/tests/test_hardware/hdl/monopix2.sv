@@ -13,6 +13,7 @@ module monopix2 (
         , output logic LVDS_DATA_OUT
         , output logic LVDS_HITOR_OUT
         , output logic LVDS_CHSYNC_LOCKED_OUT
+        , input logic [1:0]  CHIP_ID
         , input logic [262143:0]  ANALOG_HIT
     );
     
@@ -37,6 +38,7 @@ module monopix2 (
         , output logic LVDS_DATA_OUT
         , output logic LVDS_HITOR_OUT
         , output logic LVDS_CHSYNC_LOCKED_OUT
+        , input logic [1:0]  CHIP_ID
         , input logic [262143:0]  ANALOG_HIT
     );
     
@@ -58,6 +60,7 @@ module monopix2 (
         chandle handle__V
         , input logic LVDS_CMD
         , input logic LVDS_PULSE_EXT
+        , input logic [1:0]  CHIP_ID
         , input logic [262143:0]  ANALOG_HIT
     );
     
@@ -83,7 +86,7 @@ module monopix2 (
     logic LVDS_CHSYNC_LOCKED_OUT_tmp__V;
     // Hash value to make sure this file and the corresponding
     // library agree
-    localparam int protectlib_hash__V = 32'd2954403249;
+    localparam int protectlib_hash__V = 32'd3187975116;
 
     initial begin
         monopix2_protectlib_check_hash(protectlib_hash__V);
@@ -100,6 +103,7 @@ module monopix2 (
             , LVDS_DATA_OUT_combo__V
             , LVDS_HITOR_OUT_combo__V
             , LVDS_CHSYNC_LOCKED_OUT_combo__V
+            , CHIP_ID
             , ANALOG_HIT
         );
     end
@@ -110,6 +114,7 @@ module monopix2 (
             handle__V
             , LVDS_CMD
             , LVDS_PULSE_EXT
+            , CHIP_ID
             , ANALOG_HIT
         );
         last_seq_seqnum__V <= monopix2_protectlib_seq_update(
