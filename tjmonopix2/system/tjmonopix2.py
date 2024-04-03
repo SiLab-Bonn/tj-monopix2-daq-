@@ -675,8 +675,6 @@ class TJMonoPix2(object):
 
     def init(self):
         # super(TJMonoPix2, self).init()
-        self.daq['cmd'].set_chip_type(1)  # ITkpixV1-like
-
         # power on
         if self.daq.board_version == 'mio3':
             self.daq['CONF']['RESET_EXT'] = 1
@@ -692,12 +690,21 @@ class TJMonoPix2(object):
             self.daq['CONF']['RESET_EXT'] = 0
             self.daq['CONF'].write()
 
-        self.write_command(self.write_sync(write=False) * 32)
+        self.init_communication()
         self.reset()
         self.configure_rx(delay=40, rd_frz_dly=40)
 
         if self.daq.board_version == 'mio3':
             self.log.info(str(self.get_power_status()))
+
+    def init_communication(self, repetitions=32):
+        self.log.info('Initializing communication...')
+
+        self.daq['cmd'].set_auto_sync(0)  # disable
+        self.write_command(self.write_sync(write=False) * repetitions)
+        self.daq['cmd'].set_auto_sync(1)  # enable
+
+        self.log.success('Communication established')
 
     def power_on(self, VDDA=1.8, VDDP=1.8, VDDA_DAC=1.8, VDDD=1.8, VPC=1.6):
         # Set power
