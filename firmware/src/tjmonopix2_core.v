@@ -122,9 +122,6 @@ module tjmonopix2_core #(
     input wire LVDS_HITOR,
     output wire LVDS_PULSE_EXT,
 
-    // NTC
-    output wire [2:0] NTC_MUX,
-
     `ifdef MIO3
         // CHSYNC output only connected on MIO3 compatible PCBs
         input wire LVDS_CHSYNC_LOCKED_OUT,
@@ -147,7 +144,8 @@ module tjmonopix2_core #(
         input wire TOKEN_OUT,
     `endif
 
-    inout wire [1:0] CHIP_ID
+    // NTC
+    output wire [2:0] NTC_MUX
 );
 
 // BOARD ID
@@ -468,7 +466,6 @@ cmd #(
     .HIGHADDR(CMD_HIGHADDR),
     .ABUSWIDTH(ABUSWIDTH)
 ) i_cmd (
-    .CHIP_TYPE(),
     .BUS_CLK(BUS_CLK),
     .BUS_RST(BUS_RST),
     .BUS_ADD(BUS_ADD),
