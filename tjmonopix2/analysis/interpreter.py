@@ -6,6 +6,7 @@ class_spec = [
     ('eof', numba.boolean),
     ('token_id', numba.uint32),
     ('tj_data_flag', numba.uint8),
+    ('rx_id', numba.uint8),
     ('error_cnt', numba.int32),
     ('col', numba.int16),
     ('row', numba.int16),
@@ -25,7 +26,7 @@ class_spec = [
 
 @numba.njit
 def is_tjmono(word):
-    return word & 0xC0000000 == 0x40000000
+    return word & 0xC8000000 == 0x40000000
 
 
 @numba.njit
@@ -40,12 +41,12 @@ def is_tdc(word):
 
 @numba.njit
 def is_tjmono_timestamp_msb(word):
-    return (word & 0xFC000000) == 0x4C000000
+    return (word & 0xCC000000) == 0x4C000000
 
 
 @numba.njit
 def is_tjmono_timestamp_lsb(word):
-    return (word & 0xFC000000) == 0x48000000
+    return (word & 0xCC000000) == 0x48000000
 
 
 @numba.njit
@@ -65,13 +66,14 @@ def get_tdc_value(word):
 
 @numba.experimental.jitclass(class_spec)
 class RawDataInterpreter(object):
-    def __init__(self, n_scan_params=1, trigger_data_format=1):
+    def __init__(self, n_scan_params=1, trigger_data_format=1, rx_id=0):
         self.sof = False
         self.eof = False
         self.error_cnt = 0
         self.token_id = 0
         self.tj_data_flag = 0
 
+        self.rx_id = rx_id
         self.n_scan_params = n_scan_params
         self.trigger_data_format = trigger_data_format
 
@@ -92,59 +94,63 @@ class RawDataInterpreter(object):
             elif is_tjmono_timestamp_lsb(raw_data_word):
                 self.tj_timestamp = self.tj_timestamp | (raw_data_word & 0x3FFFFFF)
             elif is_tjmono(raw_data_word):
-                dat = np.zeros(3, dtype=np.uint16)
-                dat[0] = (raw_data_word & 0x7FC0000) >> 18
-                dat[1] = (raw_data_word & 0x003FE00) >> 9
-                dat[2] = (raw_data_word & 0x00001FF)
+                if ((raw_data_word >> 28) & 0x3) != self.rx_id:  # Note rx_id error and continue with next word
+                    self.error_cnt += 1
+                    continue
+                else:
+                    dat = np.zeros(3, dtype=np.uint16)
+                    dat[0] = (raw_data_word & 0x7FC0000) >> 18
+                    dat[1] = (raw_data_word & 0x003FE00) >> 9
+                    dat[2] = (raw_data_word & 0x00001FF)
 
-                for d in dat:
-                    if d == 0x1bc:  # SOF hit data
-                        if self.sof:
-                            self.error_cnt += 1  # SOF before EOF
-                        self.sof = True
-                        self.col = self.row = self.le = self.te = -1
-                        self.tj_data_flag = 0  # Reset data flag
-                    elif d == 0x17c:  # EOF hit data
-                        if not self.sof:
-                            self.error_cnt += 1  # EOF before SOF
-                        self.sof = False
-                        self.token_id += 1
-                    elif d == 0x13c:  # IDLE
-                        pass
-                    else:
-                        if not self.sof:
-                            self.error_cnt += 1
-
-                        if not self.tj_data_flag:  # Start block of hit words
-                            self.tj_data_flag = 1  # Starting with column data
-                            self.col = (d & 0xFF) << 1
-                        elif self.tj_data_flag == 1:
-                            self.tj_data_flag = 2
-                            self.le = self._gray2bin((d & 0xfe) >> 1)
-                            self.te = (d & 0x01) << 6
-                        elif self.tj_data_flag == 2:
-                            self.tj_data_flag = 3
-                            self.te = self._gray2bin(self.te | ((d & 0xfc) >> 2))
-                            self.row = (d & 0x01) << 8
-                            self.col = self.col + ((d & 0x02) >> 1)
-                        elif self.tj_data_flag == 3:
-                            self.tj_data_flag = 0  # Reset data flag, all blocks should be there
-                            self.row = self.row | (d & 0xff)
-
-                            hit_data[hit_index]["col"] = self.col
-                            hit_data[hit_index]["row"] = self.row
-                            hit_data[hit_index]["le"] = self.le
-                            hit_data[hit_index]["te"] = self.te
-                            hit_data[hit_index]["token_id"] = self.token_id
-                            hit_data[hit_index]["timestamp"] = self.tj_timestamp
-                            hit_data[hit_index]["scan_param_id"] = scan_param_id
-
-                            self._fill_hist(self.col, self.row, (self.te - self.le) & 0x7F, scan_param_id)
-
-                            # Prepare for next data block. Increase hit index
-                            hit_index += 1
+                    for d in dat:
+                        if d == 0x1bc:  # SOF hit data
+                            if self.sof:
+                                self.error_cnt += 1  # SOF before EOF
+                            self.sof = True
+                            self.col = self.row = self.le = self.te = -1
+                            self.tj_data_flag = 0  # Reset data flag
+                        elif d == 0x17c:  # EOF hit data
+                            if not self.sof:
+                                self.error_cnt += 1  # EOF before SOF
+                            self.sof = False
+                            self.token_id += 1
+                        elif d == 0x13c:  # IDLE
+                            pass
                         else:
-                            self.error_cnt += 1
+                            if not self.sof:
+                                self.error_cnt += 1
+
+                            if not self.tj_data_flag:  # Start block of hit words
+                                self.tj_data_flag = 1  # Starting with column data
+                                self.col = (d & 0xFF) << 1
+                            elif self.tj_data_flag == 1:
+                                self.tj_data_flag = 2
+                                self.le = self._gray2bin((d & 0xfe) >> 1)
+                                self.te = (d & 0x01) << 6
+                            elif self.tj_data_flag == 2:
+                                self.tj_data_flag = 3
+                                self.te = self._gray2bin(self.te | ((d & 0xfc) >> 2))
+                                self.row = (d & 0x01) << 8
+                                self.col = self.col + ((d & 0x02) >> 1)
+                            elif self.tj_data_flag == 3:
+                                self.tj_data_flag = 0  # Reset data flag, all blocks should be there
+                                self.row = self.row | (d & 0xff)
+
+                                hit_data[hit_index]["col"] = self.col
+                                hit_data[hit_index]["row"] = self.row
+                                hit_data[hit_index]["le"] = self.le
+                                hit_data[hit_index]["te"] = self.te
+                                hit_data[hit_index]["token_id"] = self.token_id
+                                hit_data[hit_index]["timestamp"] = self.tj_timestamp
+                                hit_data[hit_index]["scan_param_id"] = scan_param_id
+
+                                self._fill_hist(self.col, self.row, (self.te - self.le) & 0x7F, scan_param_id)
+
+                                # Prepare for next data block. Increase hit index
+                                hit_index += 1
+                            else:
+                                self.error_cnt += 1
 
             ##############################
             # Part 2: interpret TLU word #

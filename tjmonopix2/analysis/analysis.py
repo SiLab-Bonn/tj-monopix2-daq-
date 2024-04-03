@@ -46,6 +46,7 @@ class Analysis(object):
         self.last_chunk = False
 
         self._get_configs()
+        self._set_chip_receiver_id()
 
         self.columns, self.rows = 512, 512
 
@@ -70,6 +71,10 @@ class Analysis(object):
     def __exit__(self, exc_type, exc_value, traceback):
         if exc_type is not None:
             self.log.exception('Exception during analysis', exc_info=(exc_type, exc_value, traceback))
+
+    def _set_chip_receiver_id(self):
+        ''' Load receiver id to allow analysis routines to check for words from wrong chip/receiver '''
+        self.rx_id = int(self.run_config.get('receiver')[2])
 
     def get_scan_param_values(self, scan_param_index=None, scan_parameter=None):
         ''' Return the scan parameter value(s)
@@ -318,7 +323,11 @@ class Analysis(object):
                     hist_cs_tot = np.zeros(shape=(cs_tot_size, ), dtype=np.uint32)
                     hist_cs_shape = np.zeros(shape=(300, ), dtype=np.int32)
 
-                interpreter = RawDataInterpreter(n_scan_params=n_scan_params, trigger_data_format=self.tlu_config['DATA_FORMAT'])
+                interpreter = RawDataInterpreter(
+                    n_scan_params=n_scan_params,
+                    trigger_data_format=self.tlu_config['DATA_FORMAT'],
+                    rx_id=self.rx_id
+                )
                 self.last_chunk = False
                 pbar = tqdm(total=n_words, unit=' Words', unit_scale=True)
                 upd = 0
