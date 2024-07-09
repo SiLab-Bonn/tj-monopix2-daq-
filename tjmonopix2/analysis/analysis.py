@@ -412,7 +412,7 @@ class Analysis(object):
                                    filters=tb.Filters(complib='blosc',
                                                       complevel=5,
                                                       fletcher32=False))
-                        
+
             if self.analyze_tdc:  # Only store if TDC analysis is used.
                 out_file.create_carray(out_file.root,
                                        name='HistTdc',
