@@ -37,13 +37,8 @@ def is_tlu(word):
 
 
 @numba.njit
-def is_tdc_lvds(word):
+def is_tdc(word):
     return word & 0xF0000000 == 0x20000000
-
-
-@numba.njit
-def is_tdc_cmos(word):
-    return word & 0xF0000000 == 0x10000000
 
 
 @numba.njit
@@ -186,10 +181,10 @@ class RawDataInterpreter(object):
                 # Prepare for next data block. Increase hit index
                 hit_index += 1
 
-            ###################################
+            ##############################
             # Part 3: interpret TDC word #
-            ###################################
-            elif is_tdc_lvds(raw_data_word):
+            ##############################
+            elif is_tdc(raw_data_word):
                 trigger_dist, tdc_timestamp, tdc_value = get_tdc_word(raw_data_word, self.en_trigger_dist)
 
                 hit_data[hit_index]["col"] = 0x3FE  # 1022 as TDC identifier
