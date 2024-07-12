@@ -1,4 +1,5 @@
 general: # General configuration
+  abort_on_rx_error: False
   readout_system: # Readout system, available platforms are BDAQ53 or MIO3 (+ GPAC). BDAQ53 is default
   output_directory: #'/media/raid/data/tjmonopix2/2021-10-25_elsa/tuning' # Top-level output data directory, default is the current folder where the script is started
 
@@ -34,16 +35,16 @@ TDC:
   EN_INVERT_TRIGGER: 0 # Inverting trigger input, e.g. for using Test output from EUDET TLU
 
 hardware: # Setup-specific hardware settings
-  enable_NTC: False # Only enable if you know you have the correct resistors mounted on the BDAQ board!
+  enable_NTC: True # Only enable if you know you have the correct resistors mounted on the BDAQ board!
 
 calibration: # Setup-specific calibration constants
   electron_conversion: # Charge conversion from DAC to e⁻, typically 8.8 for DC and 13.3 for AC (slightly chip dependent!)
     DC_coupled: 8.8
     AC_coupled: 13.3
   bdaq_ntc: # Resistors on BDAQ board for NTC readout
-    R16: 412.00e3
-    R17: 13.00e3
-    R19: 6.04e3
+    R16: 1.2e6
+    R17: 20e3
+    R19: 7.95e3
 
 # Standard analysis settings
 # Scans might overwrite these settings if needed.
