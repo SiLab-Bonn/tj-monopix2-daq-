@@ -10,10 +10,9 @@ import os
 from copy import deepcopy
 from importlib.metadata import version
 
-import pkg_resources
 import tables as tb
 
-VERSION = version('tj-monopix2-daq')
+VERSION = version('tjmonopix2')
 
 
 def recursive_update(first, second={}):
