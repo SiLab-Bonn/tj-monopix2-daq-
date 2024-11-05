@@ -19,7 +19,7 @@ module monopix2 (
     
     // Precision of submodule (commented out to avoid requiring timescale on all modules)
     // timeunit 1ns;
-    // timeprecision 100ps;
+    // timeprecision 1ns;
     
     // Checks to make sure the .sv wrapper and library agree
     import "DPI-C" function void monopix2_protectlib_check_hash(int protectlib_hash__V);

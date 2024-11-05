@@ -100,12 +100,12 @@ module tjmonopix2_core #(
     output wire RESETB_EXT,
 
     // LVDS IO
-    output wire LVDS_CMD,
-    output wire LVDS_CMD_CLK,
-    output wire LVDS_SER_CLK,
-    input wire LVDS_DATA,
+    output wire [3:0] LVDS_CMD,
+    output wire [3:0] LVDS_CMD_CLK,
+    output wire [3:0] LVDS_SER_CLK,
+    input wire [3:0] LVDS_DATA,
     input wire LVDS_HITOR,
-    output wire LVDS_PULSE_EXT,
+    output wire [3:0] LVDS_PULSE_EXT,
 
     // NTC
     output wire [2:0] NTC_MUX,
@@ -155,14 +155,13 @@ reg SI570_IS_CONFIGURED = 1'b0;
 localparam VERSION = 1; // Module version
 
 // -------  MODULE ADREESSES  ------- //
+localparam ABUSWIDTH = 32;
+
 localparam GPIO_BASEADDR = 32'h0010;
 localparam GPIO_HIGHADDR = 32'h0100 - 1;
 
 localparam PULSE_INJ_BASEADDR = 32'h0100;
 localparam PULSE_INJ_HIGHADDR = 32'h0200 - 1;
-
-localparam RX_BASEADDR = 32'h0200;
-localparam RX_HIGHADDR = 32'h0300 - 1; 
 
 localparam DAQ_SYSTEM_BASEADDR = 32'h0300;
 localparam DAQ_SYSTEM_HIGHADDR = 32'h0400 - 1;
@@ -194,13 +193,24 @@ localparam PULSER_VETO_HIGHADDR = 32'h0900-1;
 localparam PULSE_CMD_START_LOOP_BASEADDR = 32'h0C00;
 localparam PULSE_CMD_START_LOOP_HIGHADDR = 32'h0D00 - 1;
 
-localparam I2C_BASEADDR = 32'h3000;
-localparam I2C_HIGHADDR = 32'h4000 - 1;
+// RX
+localparam RX0_BASEADDR = 32'h1000;
+localparam RX0_HIGHADDR = 32'h1100 - 1; 
 
-localparam CMD_BASEADDR = 32'h1000;
-localparam CMD_HIGHADDR = 32'h3000 - 1;
+localparam RX1_BASEADDR = 32'h1100;
+localparam RX1_HIGHADDR = 32'h1200 - 1;
 
-localparam ABUSWIDTH = 32;
+localparam RX2_BASEADDR = 32'h1200;
+localparam RX2_HIGHADDR = 32'h1300 - 1;
+
+localparam RX3_BASEADDR = 32'h1300;
+localparam RX3_HIGHADDR = 32'h1400 - 1;
+
+localparam CMD_BASEADDR = 32'h2000;
+localparam CMD_HIGHADDR = 32'h4000 - 1;
+
+localparam I2C_BASEADDR = 32'h4000;
+localparam I2C_HIGHADDR = 32'h5000 - 1;
 
 // SYSTEM CONFIG
 wire DAQ_SYSTEM_RD, DAQ_SYSTEM_WR;
@@ -428,7 +438,7 @@ i2c
 
 // ----- Pulser for injection ----- //
 assign CMOS_PULSE_EXT = 1'b0;  // not connected for now
-assign LVDS_PULSE_EXT = 1'b0;  // not connected for now
+assign LVDS_PULSE_EXT = 4'b0;  // not connected for now
 
 // ----- Command encoder ----- //
 wire CMD;
@@ -444,7 +454,7 @@ cmd #(
     .HIGHADDR(CMD_HIGHADDR),
     .ABUSWIDTH(ABUSWIDTH)
 ) i_cmd (
-    .CHIP_TYPE(),
+    // .CHIP_TYPE(),
     .BUS_CLK(BUS_CLK),
     .BUS_RST(BUS_RST),
     .BUS_ADD(BUS_ADD),
@@ -476,15 +486,20 @@ cmd #(
     assign LVDS_CMD = EN_LVDS_IN ? ~CMD : 1'b0;
     assign CMOS_CMD = EN_CMOS_IN ? CMD : 1'b0;
 `elsif BDAQ53
-    ODDR ODDR_inst_SER_CLK (
-        .Q(LVDS_SER_CLK), .C(CLK160), .CE(1'b1), .D1(1'b0), .D2(1'b1), .R(1'b0), .S(1'b0)
-    );
-    ODDR ODDR_inst_CMD_CLK (
-        .Q(LVDS_CMD_CLK), .C(CLKCMD), .CE(1'b1), .D1(1'b0), .D2(1'b1), .R(1'b0), .S(1'b0)
-    );
-    ODDR ODDR_inst_CMD (
-        .Q(LVDS_CMD), .C(CLKCMD), .CE(1'b1), .D1(~CMD_OUT), .D2(~CMD_OUT), .R(1'b0), .S(1'b0)
-    );
+    genvar i;
+    generate
+        for (i=0; i<4; i=i+1) begin : ODDR_inst_clks
+            ODDR ODDR_inst_SER_CLK (
+                .Q(LVDS_SER_CLK[i]), .C(CLK160), .CE(1'b1), .D1(1'b0), .D2(1'b1), .R(1'b0), .S(1'b0)
+            );
+            ODDR ODDR_inst_CMD_CLK (
+                .Q(LVDS_CMD_CLK[i]), .C(CLKCMD), .CE(1'b1), .D1(1'b0), .D2(1'b1), .R(1'b0), .S(1'b0)
+            );
+            ODDR ODDR_inst_CMD (
+                .Q(LVDS_CMD[i]), .C(CLKCMD), .CE(1'b1), .D1(~CMD_OUT), .D2(~CMD_OUT), .R(1'b0), .S(1'b0)
+            );
+        end
+    endgenerate
 `endif
 
 pulse_gen #(
@@ -505,8 +520,9 @@ pulse_gen #(
 );
 
 // RX
-wire RX_FIFO_READ, RX_FIFO_EMPTY;
-wire [31:0] RX_FIFO_DATA;
+wire [3:0] RX_FIFO_READ;
+wire [3:0] RX_FIFO_EMPTY;
+wire [31:0] RX_FIFO_DATA [3:0];
 
 // TLU
 wire TLU_FIFO_READ, TLU_FIFO_EMPTY;
@@ -519,23 +535,32 @@ wire [31:0] TDC_FIFO_DATA;
 
 rrp_arbiter 
 #( 
-    .WIDTH(3)
+    .WIDTH(6)
 ) rrp_arbiter (
     .RST(BUS_RST),
     .CLK(BUS_CLK),
 
     .WRITE_REQ({
-        ~RX_FIFO_EMPTY,
+        ~RX_FIFO_EMPTY[0],
+        ~RX_FIFO_EMPTY[1],
+        ~RX_FIFO_EMPTY[2],
+        ~RX_FIFO_EMPTY[3],
         ~TLU_FIFO_EMPTY,
         ~TDC_FIFO_EMPTY
     }),
-    .HOLD_REQ({1'b0, TLU_FIFO_PREEMPT_REQ, 1'b0}),
+    .HOLD_REQ({4'b0, TLU_FIFO_PREEMPT_REQ, 1'b0}),
     .DATA_IN({
-        RX_FIFO_DATA,
+        RX_FIFO_DATA[0],
+        RX_FIFO_DATA[1],
+        RX_FIFO_DATA[2],
+        RX_FIFO_DATA[3],
         TLU_FIFO_DATA,
         TDC_FIFO_DATA}),
     .READ_GRANT({
-        RX_FIFO_READ,
+        RX_FIFO_READ[0],
+        RX_FIFO_READ[1],
+        RX_FIFO_READ[2],
+        RX_FIFO_READ[3],
         TLU_FIFO_READ,
         TDC_FIFO_READ
     }),
@@ -656,39 +681,45 @@ tdc_s3 #(
 );
 
 // fast readout
-tjmono2_rx #(
-    .BASEADDR(RX_BASEADDR),
-    .HIGHADDR(RX_HIGHADDR),
-    .DATA_IDENTIFIER(4'b0100),
-    .ABUSWIDTH(ABUSWIDTH),
-    .USE_FIFO_CLK(0)
-) tjmono2_rx (
-    .TS_CLK(CLK40),
-    .FCLK(CLK160),
-    .FCLK2X(CLK320),
-    .RX_CLKW(CLK16),
-    .RX_DATA(LVDS_DATA),
+genvar j;
+generate
+    for (j=0; j<4; j=j+1) begin : tjmono2_rxs
+        tjmono2_rx #(
+            .BASEADDR(32'h1000 + j*32'h0100),
+            .HIGHADDR(32'h1100 + j*32'h0100 - 1),
+            .DATA_IDENTIFIER(4'b0100 + j),  // hochzaehlen
+            .ABUSWIDTH(ABUSWIDTH),
+            .USE_FIFO_CLK(0)
+        ) tjmono2_rx (
+            .TS_CLK(CLK40),
+            .FCLK(CLK160),
+            .FCLK2X(CLK320),
+            .RX_CLKW(CLK16),
+            .RX_DATA(LVDS_DATA[j]),
 
-    .RX_READY(),
-    .RX_8B10B_DECODER_ERR(),
-    .RX_FIFO_OVERFLOW_ERR(),
+            .RX_READY(),
+            .RX_8B10B_DECODER_ERR(),
+            .RX_FIFO_OVERFLOW_ERR(),
 
-    .FIFO_CLK(),
-    .FIFO_READ(RX_FIFO_READ),
-    .FIFO_EMPTY(RX_FIFO_EMPTY),
-    .FIFO_DATA(RX_FIFO_DATA),
+            .FIFO_CLK(),
+            // vervierfachen RX_FIFO_READ etc
+            .FIFO_READ(RX_FIFO_READ[j]),
+            .FIFO_EMPTY(RX_FIFO_EMPTY[j]),
+            .FIFO_DATA(RX_FIFO_DATA[j]),
 
-    .RX_FIFO_FULL(),
-    .RX_ENABLED(),
+            .RX_FIFO_FULL(),
+            .RX_ENABLED(),
 
-    .TIMESTAMP(TIMESTAMP[51:0]),
+            .TIMESTAMP(TIMESTAMP[51:0]),
 
-    .BUS_CLK(BUS_CLK),
-    .BUS_RST(BUS_RST),
-    .BUS_ADD(BUS_ADD),
-    .BUS_DATA(BUS_DATA),
-    .BUS_RD(BUS_RD),
-    .BUS_WR(BUS_WR)
-);
+            .BUS_CLK(BUS_CLK),
+            .BUS_RST(BUS_RST),
+            .BUS_ADD(BUS_ADD),
+            .BUS_DATA(BUS_DATA),
+            .BUS_RD(BUS_RD),
+            .BUS_WR(BUS_WR)
+        );
+    end
+endgenerate
 
 endmodule

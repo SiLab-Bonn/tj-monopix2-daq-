@@ -9,7 +9,7 @@ from basil.HL.RegisterHardwareLayer import RegisterHardwareLayer
 
 
 class cmd(RegisterHardwareLayer):
-    '''Implement master RD53 configuration and timing interface driver.
+    '''Implement RD53B command encoder configuration and timing interface driver.
     '''
 
     _registers = {'RESET': {'descr': {'addr': 0, 'size': 8, 'properties': ['writeonly']}},
@@ -20,59 +20,16 @@ class cmd(RegisterHardwareLayer):
                   'EXT_START_EN': {'descr': {'addr': 2, 'size': 1, 'offset': 2, 'properties': ['rw']}},
                   'EXT_TRIGGER_EN': {'descr': {'addr': 2, 'size': 1, 'offset': 3, 'properties': ['rw']}},
                   'OUTPUT_EN': {'descr': {'addr': 2, 'size': 1, 'offset': 4, 'properties': ['rw']}},
-                  'BYPASS_MODE': {'descr': {'addr': 2, 'size': 1, 'offset': 5, 'properties': ['rw']}},
-                  'CHIP_TYPE': {'descr': {'addr': 2, 'size': 2, 'offset': 6, 'properties': ['rw']}},
                   'SIZE': {'descr': {'addr': 3, 'size': 16}},
                   'REPETITIONS': {'descr': {'addr': 5, 'size': 16}},
                   'MEM_BYTES': {'descr': {'addr': 7, 'size': 16, 'properties': ['ro']}},
-                  'AZ_VETO_CYCLES': {'descr': {'addr': 9, 'size': 16}}
+                  'AZ_VETO_CYCLES': {'descr': {'addr': 9, 'size': 16}},
+                  'BYPASS_MODE_RESET': {'descr': {'addr': 11, 'size': 1, 'offset': 0, 'properties': ['wo']}},
+                  'BYPASS_CDR': {'descr': {'addr': 11, 'size': 1, 'offset': 1, 'properties': ['wo']}},
+                  'AUTO_SYNC': {'descr': {'addr': 11, 'size': 1, 'offset': 2, 'properties': ['wr']}}
                   }
 
     _require_version = "==2"
-
-    cmd_data_map = {
-        0: 0b01101010,
-        1: 0b01101100,
-        2: 0b01110001,
-        3: 0b01110010,
-        4: 0b01110100,
-        5: 0b10001011,
-        6: 0b10001101,
-        7: 0b10001110,
-        8: 0b10010011,
-        9: 0b10010101,
-        10: 0b10010110,
-        11: 0b10011001,
-        12: 0b10011010,
-        13: 0b10011100,
-        14: 0b10100011,
-        15: 0b10100101,
-        16: 0b10100110,
-        17: 0b10101001,
-        18: 0b01011001,
-        19: 0b10101100,
-        20: 0b10110001,
-        21: 0b10110010,
-        22: 0b10110100,
-        23: 0b11000011,
-        24: 0b11000101,
-        25: 0b11000110,
-        26: 0b11001001,
-        27: 0b11001010,
-        28: 0b11001100,
-        29: 0b11010001,
-        30: 0b11010010,
-        31: 0b11010100
-    }
-
-    CMD_SYNC = [0b10000001, 0b01111110]  # 0x(817E)
-    # CMD_PLL_LOCK = [0b01010101, 0b01010101]
-    # CMD_READ_TRIGGER = 0b01101001
-    CMD_CLEAR = 0b01011010
-    CMD_GLOBAL_PULSE = 0b01011100
-    CMD_CAL = 0b01100011
-    CMD_REGISTER = 0b01100110
-    CMD_RDREG = 0b01100101
 
     def __init__(self, intf, conf):
         super(cmd, self).__init__(intf, conf)
@@ -130,16 +87,27 @@ class cmd(RegisterHardwareLayer):
         ''' CMD output driver. False=high impedance '''
         self.OUTPUT_EN = value
 
-    def set_bypass_mode(self, value):
-        ''' CDR bypass mode (KC705+FMC_LPC). Enables the output drivers and sends cmd and serializer clock to the chip '''
-        self.BYPASS_MODE = value
+    def set_auto_sync(self, value):
+        ''' Enables automatic sending of sync commands to prevent ITkPixV1 like chips from unlocking '''
+        self.AUTO_SYNC = value
 
-    def get_bypass_mode(self):
-        return self.BYPASS_MODE
+    def get_auto_sync(self):
+        ''' Gets the status of the AUTO_SYNC register to enable automatic sending of sync commands to prevent ITkPixV1 like chips from unlocking '''
+        return self.AUTO_SYNC
+
+    # TODO: Bypass can be deleted
+    def set_bypass_cdr(self, value):
+        ''' CDR bypass mode (KC705+FMC_LPC). Enables the output drivers and sends cmd and serializer clock to the chip '''
+        self.BYPASS_CDR = value
+
+    def set_bypass_reset(self, value):
+        ''' CDR bypass mode (KC705+FMC_LPC). Sends external CDR reset to the chip '''
+        self.BYPASS_MODE_RESET = value
 
     def is_done(self):
         return self.READY
-
+   
+   # TODO: AZ can be deleted
     def get_az_veto_cycles(self):
         ''' Veto clock cycles in 1/160 MHz during AZ '''
         return self.AZ_VETO_CYCLES
@@ -147,10 +115,6 @@ class cmd(RegisterHardwareLayer):
     def set_az_veto_cycles(self, value):
         ''' Veto clock cycles in 1/160 MHz during AZ '''
         self.AZ_VETO_CYCLES = value
-
-    def set_chip_type(self, value):
-        ''' Defines chip type for DAQ 0 = RD53A, 1 = ITKPixV1 '''
-        self.CHIP_TYPE = value
 
     def set_data(self, data, addr=0):
         if self._mem_size < len(data):

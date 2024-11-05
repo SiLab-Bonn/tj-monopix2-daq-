@@ -12,7 +12,6 @@ module cmd
     parameter HIGHADDR = 32'h0000,
     parameter ABUSWIDTH = 16
 ) (
-    output wire [1:0]           CHIP_TYPE,
     input wire                  BUS_CLK,
     input wire                  BUS_RST,
     input wire  [ABUSWIDTH-1:0] BUS_ADD,
@@ -66,7 +65,6 @@ cmd_core
     .ABUSWIDTH(ABUSWIDTH)
 ) i_cmd_core
 (   
-    .CHIP_TYPE(CHIP_TYPE),
     .BUS_CLK(BUS_CLK),
     .BUS_RST(BUS_RST),
     .BUS_ADD(IP_ADD),

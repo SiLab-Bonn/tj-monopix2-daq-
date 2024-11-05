@@ -675,7 +675,7 @@ class TJMonoPix2(object):
 
     def init(self):
         # super(TJMonoPix2, self).init()
-        self.daq['cmd'].set_chip_type(1)  # ITkpixV1-like
+        # self.daq['cmd'].set_chip_type(1)  # ITkpixV1-like
 
         # power on
         if self.daq.board_version == 'mio3':
@@ -692,12 +692,22 @@ class TJMonoPix2(object):
             self.daq['CONF']['RESET_EXT'] = 0
             self.daq['CONF'].write()
 
+        self.init_communication()
         self.write_command(self.write_sync(write=False) * 32)
         self.reset()
         self.configure_rx(delay=40, rd_frz_dly=40)
 
         if self.daq.board_version == 'mio3':
             self.log.info(str(self.get_power_status()))
+
+    def init_communication(self, repetitions=32):
+        self.log.info('Initializing communication...')
+
+        self.daq['cmd'].set_auto_sync(0)  # disable
+        self.write_command(self.write_sync(write=False) * repetitions)
+        self.daq['cmd'].set_auto_sync(1)  # enable
+
+        self.log.success('Communication established')
 
     def power_on(self, VDDA=1.8, VDDP=1.8, VDDA_DAC=1.8, VDDD=1.8, VPC=1.6):
         # Set power
@@ -824,7 +834,9 @@ class TJMonoPix2(object):
         hit_dtype = np.dtype(
             [("col", "<u2"), ("row", "<u2"), ("le", "<u1"), ("te", "<u1"), ("token_id", "<i8")])
         reg_dtype = np.dtype([("address", "<u1"), ("value", "<u2")])
-        r = raw_data[(raw_data & 0xF8000000) == 0x40000000]
+
+        rx_id = int(self.receiver[2])
+        r = raw_data[(raw_data & 0xF8000000) == 0x40000000 + rx_id*0x10000000]
         r0 = (r & 0x7FC0000) >> 18
         r1 = (r & 0x003FE00) >> 9
         r2 = (r & 0x00001FF)

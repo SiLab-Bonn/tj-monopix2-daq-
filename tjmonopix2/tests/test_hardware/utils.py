@@ -91,17 +91,26 @@ def setup_cocotb(extra_defines: list = []) -> dict:
 
     return cnfg
 
-
 def wait_for_sim(dut: BDAQ53, repetitions=8) -> None:
     dut.write_command(dut.write_sync(write=False), repetitions=repetitions)
 
 
-def init_device(sim_config: dict) -> typing.Tuple[BDAQ53, TJMonoPix2]:
+def init_device(sim_config: dict, chip_id: list = None, chip_sn=['W00R00']) -> typing.Tuple[BDAQ53, TJMonoPix2]:
     daq = BDAQ53(conf=sim_config)
     daq.init()
 
-    device = TJMonoPix2(daq=daq)
-    device.init()
+    if chip_id == None:
+        print('No chip ID provided using default chip ID: 0')
+        daq.rx_channels["rx0"].set_en(True)  # Enable rx module in FPGA
+        device = TJMonoPix2(daq=daq, chip_id=0, receiver='rx0')
+        device.init()
+    else:
+        device = []
+        for index, id in enumerate(chip_id):
+            rx = "rx%i" %id
+            device.append(TJMonoPix2(daq=daq, chip_id=id, receiver=rx))
+            device[index].init()
 
-    daq.rx_channels["rx0"].set_en(True)  # Enable rx module in FPGA
+            daq.rx_channels[rx].set_en(True)  # Enable rx module in FPGA
+
     return daq, device

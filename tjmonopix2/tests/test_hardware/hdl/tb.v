@@ -93,11 +93,12 @@ wire LEMO_MUX_TX1, LEMO_MUX_TX0, LEMO_MUX_RX1, LEMO_MUX_RX0;
 wire RJ45_CLK, RJ45_BUSY, RJ45_RESET, RJ45_TRIGGER;
 wire RESETB_EXT /* verilator public_flat_rd */;
 
-wire LVDS_CMD, LVDS_CMD_CLK;
-wire LVDS_SER_CLK;
-wire LVDS_DATA;
+wire [3:0] LVDS_CMD;
+wire [3:0] LVDS_CMD_CLK;
+wire [3:0] LVDS_SER_CLK;
+wire [3:0] LVDS_DATA;
 wire LVDS_HITOR;
-wire LVDS_PULSE_EXT;
+wire [3:0] LVDS_PULSE_EXT;
 wire LVDS_CHSYNC_LOCK;
 
 tjmonopix2_core #(
@@ -155,32 +156,32 @@ tjmonopix2_core #(
     .LVDS_PULSE_EXT(LVDS_PULSE_EXT)
 );
 
-tlu_master #(
-    .BASEADDR(TLU_MASTER_BASEADDR),
-    .HIGHADDR(TLU_MASTER_HIGHADDR)
-) tlu (
-    .CLK320(CLK320),
-    .CLK160(CLK160),
-    .CLK40(CLK40),
+// tlu_master #(
+//     .BASEADDR(TLU_MASTER_BASEADDR),
+//     .HIGHADDR(TLU_MASTER_HIGHADDR)
+// ) tlu (
+//     .CLK320(CLK320),
+//     .CLK160(CLK160),
+//     .CLK40(CLK40),
 
-    .TEST_PULSE(1'b0),
-    .DUT_TRIGGER(RJ45_TRIGGER),
-    .DUT_RESET(RJ45_RESET),
-    .DUT_BUSY(RJ45_BUSY),
-    .DUT_CLOCK(RJ45_CLK),
-    .BEAM_TRIGGER(BEAM_TRIGGER),
+//     .TEST_PULSE(1'b0),
+//     .DUT_TRIGGER(RJ45_TRIGGER),
+//     .DUT_RESET(RJ45_RESET),
+//     .DUT_BUSY(RJ45_BUSY),
+//     .DUT_CLOCK(RJ45_CLK),
+//     .BEAM_TRIGGER(BEAM_TRIGGER),
 
-    .FIFO_READ(1'b0),
-    .FIFO_EMPTY(),
-    .FIFO_DATA(),
+//     .FIFO_READ(1'b0),
+//     .FIFO_EMPTY(),
+//     .FIFO_DATA(),
 
-    .BUS_CLK(BUS_CLK),
-    .BUS_RST(BUS_RST),
-    .BUS_ADD(BUS_ADD),
-    .BUS_DATA(BUS_DATA[7:0]),
-    .BUS_RD(BUS_RD),
-    .BUS_WR(BUS_WR)
-);
+//     .BUS_CLK(BUS_CLK),
+//     .BUS_RST(BUS_RST),
+//     .BUS_ADD(BUS_ADD),
+//     .BUS_DATA(BUS_DATA[7:0]),
+//     .BUS_RD(BUS_RD),
+//     .BUS_WR(BUS_WR)
+// );
 
 bram_fifo
 #(
@@ -207,17 +208,65 @@ bram_fifo
     .FIFO_READ_ERROR()
 );
 
-monopix2 dut (
+monopix2 dut_0 (
     .RESETB_EXT(1'b1),  // No need to reset chip in tests
-    .ANALOG_HIT(ANALOG_HIT),
+    // .ANALOG_HIT(ANALOG_HIT),
     .CHIP_ID(2'b0),
     
-    .LVDS_CMD(~LVDS_CMD),  // invert for simulation only
-    .LVDS_CMD_CLK(LVDS_CMD_CLK), 
-    .LVDS_SER_CLK(LVDS_SER_CLK), 
-    .LVDS_DATA_OUT(LVDS_DATA), 
-    .LVDS_HITOR_OUT(LVDS_HITOR),
-    .LVDS_PULSE_EXT(LVDS_PULSE_EXT),
+    .LVDS_CMD(~LVDS_CMD[0]),  // invert for simulation only
+    .LVDS_CMD_CLK(LVDS_CMD_CLK[0]), 
+    .LVDS_SER_CLK(LVDS_SER_CLK[0]), 
+    .LVDS_DATA_OUT(LVDS_DATA[0]), 
+    .LVDS_HITOR_OUT(),
+    // .LVDS_PULSE_EXT(LVDS_PULSE_EXT[0]),
+
+    .LVDS_CHSYNC_LOCKED_OUT(LVDS_CHSYNC_LOCK),
+    .LVDS_CHSYNC_CLK_OUT()
+);
+
+monopix2 dut_1 (
+    .RESETB_EXT(1'b1),  // No need to reset chip in tests
+    // .ANALOG_HIT(ANALOG_HIT),
+    .CHIP_ID(2'b1),
+    
+    .LVDS_CMD(~LVDS_CMD[1]),  // invert for simulation only
+    .LVDS_CMD_CLK(LVDS_CMD_CLK[1]), 
+    .LVDS_SER_CLK(LVDS_SER_CLK[1]), 
+    .LVDS_DATA_OUT(LVDS_DATA[1]), 
+    .LVDS_HITOR_OUT(),
+    // .LVDS_PULSE_EXT(LVDS_PULSE_EXT[1]),
+
+    .LVDS_CHSYNC_LOCKED_OUT(LVDS_CHSYNC_LOCK),
+    .LVDS_CHSYNC_CLK_OUT()
+);
+
+monopix2 dut_2 (
+    .RESETB_EXT(1'b1),  // No need to reset chip in tests
+    // .ANALOG_HIT(ANALOG_HIT),
+    .CHIP_ID(2'b10),
+    
+    .LVDS_CMD(~LVDS_CMD[2]),  // invert for simulation only
+    .LVDS_CMD_CLK(LVDS_CMD_CLK[2]), 
+    .LVDS_SER_CLK(LVDS_SER_CLK[2]), 
+    .LVDS_DATA_OUT(LVDS_DATA[2]), 
+    .LVDS_HITOR_OUT(),
+    // .LVDS_PULSE_EXT(LVDS_PULSE_EXT[2]),
+
+    .LVDS_CHSYNC_LOCKED_OUT(LVDS_CHSYNC_LOCK),
+    .LVDS_CHSYNC_CLK_OUT()
+);
+
+monopix2 dut_3 (
+    .RESETB_EXT(1'b1),  // No need to reset chip in tests
+    // .ANALOG_HIT(ANALOG_HIT),
+    .CHIP_ID(2'b11),
+    
+    .LVDS_CMD(~LVDS_CMD[3]),  // invert for simulation only
+    .LVDS_CMD_CLK(LVDS_CMD_CLK[3]), 
+    .LVDS_SER_CLK(LVDS_SER_CLK[3]), 
+    .LVDS_DATA_OUT(LVDS_DATA[3]), 
+    .LVDS_HITOR_OUT(),
+    // .LVDS_PULSE_EXT(LVDS_PULSE_EXT[3]),
 
     .LVDS_CHSYNC_LOCKED_OUT(LVDS_CHSYNC_LOCK),
     .LVDS_CHSYNC_CLK_OUT()
