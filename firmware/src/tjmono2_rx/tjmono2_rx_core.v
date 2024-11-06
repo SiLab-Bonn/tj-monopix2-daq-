@@ -181,7 +181,7 @@ always @ (posedge BUS_CLK)
         .RST(CONF_RX_DATA_DLY_WR),
         .T(1'b1)
     );
-
+    
 `endif
    
   
