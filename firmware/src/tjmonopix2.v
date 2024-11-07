@@ -47,8 +47,8 @@ module tjmonopix2 #(
     input wire RJ45_TRIGGER,
 
     `ifdef BDAQ53
-        output wire [3:0] J_GPIO_CLK_P,
-        output wire [3:0] J_GPIO_CLK_N,  
+        output wire [3:0] J_GPIO_CMD_P,
+        output wire [3:0] J_GPIO_CMD_N,  
         output wire [3:0] J_GPIO_CLK_CMD_P,
         output wire [3:0] J_GPIO_CLK_CMD_N, 
         output wire [3:0] J_GPIO_CLK_SEL_P,
@@ -314,8 +314,8 @@ assign LEMO_TX1 = LEMO_MUX_TX1[1] ? (LEMO_MUX_TX1[0] ? 1'b0 : 1'b0) : (LEMO_MUX_
                 .OB(CMD_N[i]),             // Diff_n output (connect directly to top-level port)
                 .I(LVDS_CMD[i])            // Buffer input
             );
-            assign J_GPIO_CLK_P[i] = CMD_P[i];
-            assign J_GPIO_CLK_N[i] = CMD_N[i];
+            assign J_GPIO_CMD_P[i] = CMD_P[i];
+            assign J_GPIO_CMD_N[i] = CMD_N[i];
 
             // CMD CLK
             OBUFDS #(
