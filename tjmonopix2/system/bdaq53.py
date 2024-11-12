@@ -41,7 +41,18 @@ class BDAQ53(Dut):
         self.calibration = self.configuration.get('calibration', {})
         self.enable_NTC = self.configuration['hardware'].get('enable_NTC', False)
 
-        self.receivers = {'rx0': 0x1000, 'rx1': 0x1100, 'rx2': 0x1200, 'rx3': 0x1300}
+
+        self.num_rx_channels = 4
+        # Receivers in use
+        self.receivers = []
+        chip_cfgs = self.get_chips_cfgs()
+        for chip_cfg in chip_cfgs:
+            if chip_cfg['receiver'] not in self.receivers:
+                self.receivers.append(chip_cfg['receiver'])
+            else:
+                raise RuntimeError('Receiver {0} is used multiple times in the testbench configuration!'.format(chip_cfg['receiver']))
+        # self.receivers = {'rx0': 0x1000, 'rx1': 0x1100, 'rx2': 0x1200, 'rx3': 0x1300}
+        # self.receivers = {'rx0': 0x1000}
 
         if not conf:
             conf = os.path.join(self.proj_dir, 'system' + os.sep + 'bdaq53.yaml')
@@ -65,13 +76,20 @@ class BDAQ53(Dut):
         self.rx_channels = {}
         for module in self.configuration['modules']:
             print(f'module: {module}')
-            for chip in self.configuration['modules'][module]:
-                if chip.startswith('chip'):
-                    print(f'chip: {chip}')
-                    rx = self.configuration['modules'][module][chip]['receiver']
-                    self.rx_channels[rx] = tjmono2_rx(self['intf'], {'name': 'rx', 'type': 'tjmonopix2.tjmono2_rx', 'interface': 'intf',
-                                                            'base_addr': self.receivers[rx]})
-                    self.rx_channels[rx].init()
+            for i in range(self.num_rx_channels):
+                rx = 'rx%d' %i
+                self.rx_channels[rx] = tjmono2_rx(self['intf'], {'name': 'rx%s' %i, 'type': 'tjmonopix2.tjmono2_rx', 'interface': 'intf',
+                                                'base_addr': 0x1000 + i * 0x0100})
+                self.rx_channels[rx].init()
+
+            # for chip in self.configuration['modules'][module]:
+            #     if chip.startswith('chip'):
+            #         print(f'chip: {chip}')
+
+            #         rx = self.configuration['modules'][module][chip]['receiver']
+            #         self.rx_channels[rx] = tjmono2_rx(self['intf'], {'name': 'rx', 'type': 'tjmonopix2.tjmono2_rx', 'interface': 'intf',
+            #                                                 'base_addr': self.receivers[rx]})
+            #         self.rx_channels[rx].init()
 
         # self.rx_lanes = {}
         # for recv in self.receivers:
@@ -97,6 +115,11 @@ class BDAQ53(Dut):
                 self['cmd'].set_output_en(False)
                 for receiver in self.receivers:
                     self.rx_channels[receiver].reset()
+                # for module in self.configuration['modules']:
+                #     for chip in self.configuration['modules'][module]:
+                #         if chip.startswith('chip'):
+                #             self.rx_channels[self.configuration['modules'][module][chip]['receiver']].reset()
+
                 time.sleep(0.1)
                 clk_gen.init()
                 time.sleep(0.1)

@@ -51,8 +51,8 @@ module tjmonopix2 #(
         output wire [3:0] J_GPIO_CMD_N,  
         output wire [3:0] J_GPIO_CLK_CMD_P,
         output wire [3:0] J_GPIO_CLK_CMD_N, 
-        output wire [3:0] J_GPIO_CLK_SEL_P,
-        output wire [3:0] J_GPIO_CLK_SEL_N, 
+        output wire [3:0] J_GPIO_CLK_SER_P,
+        output wire [3:0] J_GPIO_CLK_SER_N, 
         input wire [3:0] J_GPIO_AUX_P, 
         input wire [3:0] J_GPIO_AUX_N, // DATA
 
@@ -338,8 +338,8 @@ assign LEMO_TX1 = LEMO_MUX_TX1[1] ? (LEMO_MUX_TX1[0] ? 1'b0 : 1'b0) : (LEMO_MUX_
                 .OB(SER_CLK_N[i]),         // Diff_n output (connect directly to top-level port)
                 .I(LVDS_SER_CLK[i])        // Buffer input
             );
-            assign J_GPIO_CLK_SEL_P[i] = SER_CLK_P[i];
-            assign J_GPIO_CLK_SEL_N[i] = SER_CLK_N[i];
+            assign J_GPIO_CLK_SER_P[i] = SER_CLK_P[i];
+            assign J_GPIO_CLK_SER_N[i] = SER_CLK_N[i];
 
             // // PULSE
             // OBUFDS #(
@@ -585,8 +585,9 @@ assign TCP_TX_WR = !TCP_TX_FULL && !FIFO_EMPTY;
 
 // -------  USER CORE ------- //
 assign LED[7]= 1'b0;
-assign LED[6]= 1'b1;
-assign LED[5]= 1'b1;
+assign LED[6]= 1'b0;
+assign LED[5]= 1'b0;
+assign LED[4]= 1'b0;
 wire [1:0] CHIP_ID;
 
 tjmonopix2_core #(
