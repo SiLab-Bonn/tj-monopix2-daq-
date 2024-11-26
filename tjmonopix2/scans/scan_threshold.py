@@ -12,9 +12,15 @@ from tqdm import tqdm
 from plotting_scurves import Plotting
 
 scan_configuration = {
+<<<<<<< Updated upstream
     'start_column': 225,
     'stop_column': 230,
     'start_row': 507,
+=======
+    'start_column': 480,
+    'stop_column': 496,
+    'start_row': 0,
+>>>>>>> Stashed changes
     'stop_row': 512,
 
     'n_injections': 100,
@@ -56,6 +62,13 @@ class ThresholdScan(ScanBase):
         self.chip.masks['enable'][start_column:stop_column, start_row:stop_row] = True
         self.chip.masks['injection'][start_column:stop_column, start_row:stop_row] = True
         self.chip.masks['tdac'][start_column:stop_column, start_row:stop_row] = 0b100
+
+        #self.chip.masks['tdac'][start_column:stop_column, start_row:stop_row] = 0b100
+
+        #self.chip.registers["VCASP"].write(40)
+
+        #self.chip.registers["ICASN"].write(30)
+
 
         self.chip.masks.apply_disable_mask()
         self.chip.masks.update(force=True)

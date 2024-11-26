@@ -19,12 +19,19 @@ scan_configuration = {
 }
 
 register_overrides = {
-    'n_injections' : 50,
+    'n_injections' : 100,
     'ITHR': 64,
-    'IBIAS': 50,
-    'VRESET': 143,
+    'IBIAS': 40,
     'ICASN': 0,
+    'IDB': 100,
+    'ITUNE': 200,
+    'ICOMP': 80,
+    'IDEL': 88,
+    'IRAM': 50,
+    'VRESET': 120,
     'VCASP': 93,
+    'VCASC': 228,
+    'VCLIP': 255,
     'VL': 30,
     'VH': 150,
 }
