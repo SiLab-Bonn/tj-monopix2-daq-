@@ -193,6 +193,7 @@ BUFG BUFG_inst_CLK125RX (  .O(CLK125RX),  .I(rgmii_rxc) );
 BUFG BUFG_inst_CLK200 (  .O(CLK200),  .I(CLK200_PLL) );
 
 // -------  PLL for clk synthesis  ------- //
+(* KEEP = "{TRUE}" *) wire CLKILA;  
 (* KEEP = "{TRUE}" *) wire CLK320;  
 (* KEEP = "{TRUE}" *) wire CLK160;
 (* KEEP = "{TRUE}" *) wire CLK32;
@@ -200,7 +201,7 @@ BUFG BUFG_inst_CLK200 (  .O(CLK200),  .I(CLK200_PLL) );
 (* KEEP = "{TRUE}" *) wire CLK16;
 
 wire PLL_FEEDBACK2, LOCKED2;
-wire CLK16_PLL, CLK32_PLL, CLK40_PLL, CLK160_PLL, CLK320_PLL;
+wire CLK16_PLL, CLK32_PLL, CLK40_PLL, CLK160_PLL, CLK320_PLL, CLKILA_PLL;
 
 PLLE2_BASE #(
     .BANDWIDTH("OPTIMIZED"),  // OPTIMIZED, HIGH, LOW
@@ -231,7 +232,7 @@ PLLE2_BASE #(
     .CLKOUT4_DUTY_CYCLE(0.5), // Duty cycle for CLKOUT0 (0.001-0.999).
     .CLKOUT4_PHASE(0.0),      // Phase offset for CLKOUT0 (-360.000-360.000).
     
-    .CLKOUT5_DIVIDE(7),       // Divide amount for CLKOUT0 (1-128)
+    .CLKOUT5_DIVIDE(4),       // Divide amount for CLKOUT0 (1-128)
     .CLKOUT5_DUTY_CYCLE(0.5), // Duty cycle for CLKOUT0 (0.001-0.999).
     .CLKOUT5_PHASE(0.0)       // Phase offset for CLKOUT0 (-360.000-360.000).
 ) PLLE2_BASE_inst_clk (
@@ -240,7 +241,7 @@ PLLE2_BASE #(
     .CLKOUT2(CLK40_PLL),
     .CLKOUT3(CLK160_PLL),
     .CLKOUT4(CLK320_PLL),
-    .CLKOUT5(),
+    .CLKOUT5(CLKILA_PLL),
 
     .CLKFBOUT(PLL_FEEDBACK2),
     
@@ -263,6 +264,7 @@ BUFG BUFG_inst_CLK32   (.O(CLK32),   .I(CLK32_PLL));
 BUFG BUFG_inst_CLK40   (.O(CLK40),   .I(CLK40_PLL));
 BUFG BUFG_inst_CLK160  (.O(CLK160),  .I(CLK160_PLL));
 BUFG BUFG_inst_CLK320  (.O(CLK320),  .I(CLK320_PLL));
+BUFG BUFG_inst_CLKILA  (.O(CLKILA),  .I(CLKILA_PLL));
 
 // MGT CLK (from Si570 or SMA input)
 wire CLKCMD;
@@ -664,5 +666,27 @@ tjmonopix2_core #(
 
     .CHIP_ID(CHIP_ID)
 );
+
+`ifdef SYNTHESIS
+   reg LVDS_DATA_0_DBG;
+   reg LVDS_DATA_1_DBG;
+   reg LVDS_DATA_2_DBG;
+   reg LVDS_DATA_3_DBG;
+   always @(*) begin
+        LVDS_DATA_0_DBG <= LVDS_DATA[0];
+        LVDS_DATA_1_DBG <= LVDS_DATA[1];
+        LVDS_DATA_2_DBG <= LVDS_DATA[2];
+        LVDS_DATA_3_DBG <= LVDS_DATA[3];
+   end
+    multichip_debugger i_multichip_debugger (
+        .clk(CLKILA), // input wire clk
+
+        .probe0({LVDS_DATA_0_DBG}), // input wire  probe0  
+        .probe1({LVDS_DATA_1_DBG}), // input wire  probe1 
+        .probe2({LVDS_DATA_2_DBG}), // input wire  probe2 
+        .probe3({LVDS_DATA_3_DBG})  // input wire  probe3
+    );
+`endif
+
 
 endmodule
