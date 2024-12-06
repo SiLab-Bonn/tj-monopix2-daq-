@@ -365,10 +365,13 @@ assign LEMO_TX1 = LEMO_MUX_TX1[1] ? (LEMO_MUX_TX1[0] ? 1'b0 : 1'b0) : (LEMO_MUX_
                 .IB(J_GPIO_AUX_N[i])      // Diff_n buffer input (connect directly to top-level port)
             );
 
-            assign LVDS_DATA[i] = ~LVDS_DATA_int[i];
-
         end
     endgenerate
+
+    assign LVDS_DATA[0] = ~LVDS_DATA_int[0];
+    assign LVDS_DATA[1] = LVDS_DATA_int[1];
+    assign LVDS_DATA[2] = LVDS_DATA_int[2];
+    assign LVDS_DATA[3] = LVDS_DATA_int[3];
 
     IBUFDS #(
         .DIFF_TERM("TRUE"),     // Differential Termination

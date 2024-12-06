@@ -19,7 +19,10 @@ with open(os.path.join('..', 'tjmonopix2', 'system', 'bdaq53.yaml'), 'r') as f:
 daq = BDAQ53(cnfg)
 daq.init()
 
-chip = TJMonoPix2(daq)
+id = 0
+rx= 'rx%s' %id
+
+chip = TJMonoPix2(daq=daq, chip_id=id, receiver=rx)
 chip.init()
 
 # Testing

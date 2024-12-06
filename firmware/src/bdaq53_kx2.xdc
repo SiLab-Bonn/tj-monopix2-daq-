@@ -199,8 +199,8 @@ set_property PACKAGE_PIN E13 [get_ports {J_GPIO_CLK_CMD_P[1]}]
 set_property PACKAGE_PIN E12 [get_ports {J_GPIO_CLK_CMD_N[1]}]
 set_property PACKAGE_PIN G12 [get_ports {J_GPIO_CMD_P[1]}]
 set_property PACKAGE_PIN F12 [get_ports {J_GPIO_CMD_N[1]}]
-set_property PACKAGE_PIN J11 [get_ports {J_GPIO_AUX_P[1]}]
-set_property PACKAGE_PIN J10 [get_ports {J_GPIO_AUX_N[1]}]
+set_property PACKAGE_PIN B14 [get_ports {J_GPIO_AUX_P[1]}]
+set_property PACKAGE_PIN A14 [get_ports {J_GPIO_AUX_N[1]}]
 
 
 # J1A connected to SelectIOs
@@ -210,8 +210,8 @@ set_property PACKAGE_PIN G19 [get_ports {J_GPIO_CLK_CMD_P[2]}]
 set_property PACKAGE_PIN F20 [get_ports {J_GPIO_CLK_CMD_N[2]}]
 set_property PACKAGE_PIN H17 [get_ports {J_GPIO_CMD_P[2]}]
 set_property PACKAGE_PIN H18 [get_ports {J_GPIO_CMD_N[2]}]
-set_property PACKAGE_PIN F19 [get_ports {J_GPIO_AUX_P[2]}]
-set_property PACKAGE_PIN E20 [get_ports {J_GPIO_AUX_N[2]}]
+set_property PACKAGE_PIN C12 [get_ports {J_GPIO_AUX_P[2]}]
+set_property PACKAGE_PIN C11 [get_ports {J_GPIO_AUX_N[2]}]
 
 
 # J1B connected to SelectIOs
@@ -221,8 +221,8 @@ set_property PACKAGE_PIN K16 [get_ports {J_GPIO_CLK_CMD_P[3]}]
 set_property PACKAGE_PIN K17 [get_ports {J_GPIO_CLK_CMD_N[3]}] 
 set_property PACKAGE_PIN M17 [get_ports {J_GPIO_CMD_P[3]}] 
 set_property PACKAGE_PIN L18 [get_ports {J_GPIO_CMD_N[3]}] 
-set_property PACKAGE_PIN K20 [get_ports {J_GPIO_AUX_P[3]}] 
-set_property PACKAGE_PIN J20 [get_ports {J_GPIO_AUX_N[3]}] 
+set_property PACKAGE_PIN H14 [get_ports {J_GPIO_AUX_P[3]}] 
+set_property PACKAGE_PIN G14 [get_ports {J_GPIO_AUX_N[3]}] 
 
 
 set_property IOSTANDARD LVDS_25 [get_ports J_GPIO_CMD*]
