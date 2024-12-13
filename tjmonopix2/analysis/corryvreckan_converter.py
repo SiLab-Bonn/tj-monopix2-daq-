@@ -10,6 +10,8 @@ from pathlib import Path
 import numpy as np
 import tables as tb
 
+from tjmonopix2.analysis import analysis
+
 
 def format_dut(input_filename: str | Path, output_filename: str | Path = None, trigger_mode: str = "AIDA") -> None:
     """Format hit table to be compatible with corryvreckan EventLoaderHDF5 as of commit 149e937f
@@ -82,4 +84,11 @@ def format_dut(input_filename: str | Path, output_filename: str | Path = None, t
 
 if __name__ == "__main__":
     input_file = "/path/to/file.h5"
-    format_dut(input_filename=input_file, trigger_mode="aida")
+    trigger_mode = "aida"
+
+    if "_interpreted.h5" not in input_file:
+        with analysis.Analysis(raw_data_file=raw_data_file, store_hits=True, create_pdf=False, build_events=True if trigger_mode=="eudet" else False) as a:
+            a.analyze_data()
+            input_file = a.analyzed_data_file
+
+    format_dut(input_filename=input_file, trigger_mode=trigger_mode)
