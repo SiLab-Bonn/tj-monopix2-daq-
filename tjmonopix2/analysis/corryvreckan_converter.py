@@ -32,18 +32,14 @@ def format_dut(input_filename: str | Path, output_filename: str | Path = None, t
     RuntimeError
         Invalid trigger mode selected
     """
-    hit_dtype_converted = np.dtype([
-        ("column", "<u2"),
-        ("row", "<u2"),
-        ("charge", "<u2"),
-        ("timestamp", "<u8"),
-        ("trigger_number", "<u4")
-    ])
+    hit_dtype_converted = np.dtype(
+        [("column", "<u2"), ("row", "<u2"), ("charge", "<u2"), ("timestamp", "<u8"), ("trigger_number", "<u4")]
+    )
 
     if type(input_filename) is str:
         input_filename = Path(input_filename)
     if output_filename is None:
-        output_filename = Path(input_filename.parent) / Path(input_filename.stem + '_converted' + input_filename.suffix)
+        output_filename = Path(input_filename.parent) / Path(input_filename.stem + "_converted" + input_filename.suffix)
     with tb.open_file(input_filename, "r") as in_file:
         if trigger_mode.lower() == "aida":
             hit_table_in = in_file.root.Dut[:]
@@ -87,7 +83,12 @@ if __name__ == "__main__":
     trigger_mode = "aida"
 
     if "_interpreted.h5" not in input_file:
-        with analysis.Analysis(raw_data_file=raw_data_file, store_hits=True, create_pdf=False, build_events=True if trigger_mode=="eudet" else False) as a:
+        with analysis.Analysis(
+            raw_data_file=input_file,
+            store_hits=True,
+            create_pdf=False,
+            build_events=True if trigger_mode == "eudet" else False,
+        ) as a:
             a.analyze_data()
             input_file = a.analyzed_data_file
 
