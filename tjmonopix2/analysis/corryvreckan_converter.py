@@ -49,9 +49,8 @@ def format_dut(input_filename: str | Path, output_filename: str | Path = None, t
             hit_table_converted = np.zeros(len(hits_selected), dtype=hit_dtype_converted)
             with tb.open_file(output_filename, "w") as out_file:
                 hit_table_out = out_file.create_table(out_file.root, name="Hits", description=hit_dtype_converted)
-                # Internal column and numbers start at 0 TODO: check with corry
-                hit_table_converted["column"] = hits_selected["col"] + 1
-                hit_table_converted["row"] = hits_selected["row"] + 1
+                hit_table_converted["column"] = hits_selected["col"]
+                hit_table_converted["row"] = hits_selected["row"]
                 hit_table_converted["charge"] = (hits_selected["te"] - hits_selected["le"]) & 0x7F  # calculate TOT
                 hit_table_converted["timestamp"] = 25 * hits_selected["timestamp"].astype(np.uint64)  # convert to ns
                 hit_table_converted["trigger_number"] = 0
