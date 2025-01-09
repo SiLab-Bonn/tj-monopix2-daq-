@@ -39,6 +39,19 @@ class ExtTriggerScan(ScanBase):
         self.chip.masks['enable'][start_column:stop_column, start_row:stop_row] = True
         self.chip.masks.apply_disable_mask()
         self.chip.masks.update()
+        
+        # Disable column 484 and 485:
+        dcols_enable = [0] * 16
+        for c in range(start_column, stop_column):
+            dcols_enable[c // 32] |= (1 << ((c >> 1) & 15))
+        for c in [484, 485]:  # List of disabled columns
+            dcols_enable[c // 32] &= ~(1 << ((c >> 1) & 15))
+        for i, v in enumerate(dcols_enable):
+            self.chip._write_register(155 + i, v)  # EN_RO_CONF
+            self.chip._write_register(171 + i, v)  # EN_BCID_CONF
+            self.chip._write_register(187 + i, v)  # EN_RO_RST_CONF
+            self.chip._write_register(203 + i, v)  # EN_FREEZE_CONF
+
 
         self.daq.configure_tlu_veto_pulse(veto_length=500)
         if max_triggers:
@@ -87,8 +100,8 @@ class ExtTriggerScan(ScanBase):
                 except KeyboardInterrupt:  # React on keyboard interupt
                     self.stop_scan.set()
                     self.log.info('Scan was stopped due to keyboard interrupt')
-
-        self.pbar.close()
+        if scan_timeout or max_triggers:
+            self.pbar.close()
         self.daq.disable_tlu_module()
         self.log.success('Scan finished')
 
