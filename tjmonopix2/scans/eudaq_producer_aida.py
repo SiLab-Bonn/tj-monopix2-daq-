@@ -78,11 +78,10 @@ class EudaqProducerAida(pyeudaq.Producer):
         self.scan.scan_config["start_row"] = int(eudaqConfig.get("start_row", 0))
         self.scan.scan_config["stop_row"] = int(eudaqConfig.get("stop_row", 512))
 
-        # TODO: Make all registers overwriteable
         configurable_regs = ["VL", "VH", "ITHR", "IBIAS", "VCASP", "ICASN", "VRESET", "VCLIP", "IDB", "IDEL", "VCASC"]
         for reg in configurable_regs:
             try:
-                self.reg_config[reg] = eudaqConfig.get(reg, False)
+                self.scan.chip.registers[reg].write(int(eudaqConfig.get(reg, False)))
             except:
                 pass
 
