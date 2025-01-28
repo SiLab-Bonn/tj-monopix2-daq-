@@ -44,7 +44,7 @@ class EudaqProducerAida(pyeudaq.Producer):
         proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         with open(os.path.join(proj_dir, os.path.join("system", "bdaq53.yaml")), "r") as daq_conf_file:
             daq_conf = yaml.safe_load(daq_conf_file)
-        daq_conf["transfer_layer"]["init"]["ip"] = eudaqConfig.Get("daqboard_ip", "192.168.10.23")
+        daq_conf["transfer_layer"][0]["init"]["ip"] = eudaqConfig.Get("daqboard_ip", "192.168.10.23")
 
         self.log.debug("Probing if DAQ board is up")
         if host_reachable(eudaqConfig.Get("daqboard_ip", "192.168.10.23"), 24, self.BDAQBoardTimeout):
