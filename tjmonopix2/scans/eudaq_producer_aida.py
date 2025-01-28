@@ -91,23 +91,6 @@ class EudaqProducerAida(pyeudaq.Producer):
         except Exception as e:
             raise e
 
-        for reg in self.reg_config.keys():            
-            reg_val = self.reg_config[reg]
-            reg_val = reg_val.replace(',', '.')
-            if reg_val:
-                reg_val_int = int(float(reg_val))
-                reg_val_float = float(reg_val)
-
-                if (reg_val_float - reg_val_int) > 0.001:
-                    print('Contains, ', reg_val, ' in ', reg)
-                    self.current_scan_register = reg
-
-                print('After, repl ', reg_val, ' in ', reg)
-                self.init_register_vals[reg] = self.scan.chip.registers[reg].read()
-
-                if reg_val:
-                    self.scan.chip.registers[reg].write(int(float(reg_val)))
-
         self.scan.chip.registers['SEL_PULSE_EXT_CONF'].write(0)
 
     def DoStatus(self):
