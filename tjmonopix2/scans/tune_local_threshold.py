@@ -32,6 +32,15 @@ scan_configuration = {
 
 
 class TDACTuning(ScanBase):
+    """Local threshold tuning of the chip. The target threshold is set using VCAL_LOW
+    and VCAL_HIGH. From these the injected charge is calculated. The tdac value for each pixel is varied until half of the injected charge is
+    measured.
+
+    Parameters
+    ----------
+    ScanBase : bool
+        Base class for the tuning, scanning and analyzing procedures.
+    """    
     scan_id = 'local_threshold_tuning'
 
     def _configure(self, start_column=0, stop_column=512, start_row=0, stop_row=512, VCAL_LOW=30, VCAL_HIGH=60, **_):
@@ -70,7 +79,7 @@ class TDACTuning(ScanBase):
 
     def _scan(self, start_column=0, stop_column=512, start_row=0, stop_row=512, n_injections=100, **_):
         '''
-        Global threshold tuning main loop
+        Local threshold tuning main loop
 
         Parameters
         ----------

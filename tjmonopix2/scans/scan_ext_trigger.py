@@ -26,6 +26,15 @@ scan_configuration = {
 
 
 class ExtTriggerScan(ScanBase):
+    """Starts readout of the chip, the external trigger scan needs a running TLU, sending triggers to the
+    readout board. The data of the chip is saved continuously together with the trigger words.
+    The chip takes data until either a timeout or a maximum number of trigger are reached.
+
+    Parameters
+    ----------
+    ScanBase : class
+        Base class for the tuning, scanning and analyzing procedures.
+    """    
     scan_id = 'ext_trigger_scan'
 
     stop_scan = threading.Event()
@@ -83,7 +92,7 @@ class ExtTriggerScan(ScanBase):
                         self.stop_scan.set()
                         self.log.info('Trigger limit was reached: {0}'.format(max_triggers))
 
-                except KeyboardInterrupt:  # React on keyboard interupt
+                except KeyboardInterrupt:  # React on keyboard interrupt
                     self.stop_scan.set()
                     self.log.info('Scan was stopped due to keyboard interrupt')
 

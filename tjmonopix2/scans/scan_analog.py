@@ -20,6 +20,16 @@ scan_configuration = {
 
 
 class AnalogScan(ScanBase):
+    """Injects charges multiple times in the analog pixel of a given pixel matrix.
+    The responds of the chip and readout is measured. This scan tests the general functionality of the chip.
+    The default value for the number of injections per pixel is 100.
+    Where the amount of inceted charge is given by the two DAC values in the registers VL and VH.
+
+    Parameters
+    ----------
+    ScanBase : class
+        Base class for the tuning, scanning and analyzing procedures.
+    """    
     scan_id = 'analog_scan'
 
     def _configure(self, start_column=0, stop_column=512, start_row=0, stop_row=512, **_):

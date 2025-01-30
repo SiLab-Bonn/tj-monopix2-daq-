@@ -26,6 +26,15 @@ scan_configuration = {
 
 
 class ThresholdScan(ScanBase):
+    """Injects a number of times into each pixel with a given charge. The charge is varied 
+    between and VCAL_LOW_START and VCAL_LOW_STOP in steps of VCAL_LOW_STEP while keeping VCAL_HIGH constant.
+    The responds of each pixel is measured by the readout and gives information of the threshold of each pixel.
+
+    Parameters
+    ----------
+    ScanBase : class
+        Base class for the tuning, scanning and analyzing procedures.
+    """    
     scan_id = 'threshold_scan'
 
     def _configure(self, start_column=0, stop_column=512, start_row=0, stop_row=512, **_):

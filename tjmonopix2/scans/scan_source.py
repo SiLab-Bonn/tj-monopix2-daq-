@@ -25,6 +25,14 @@ scan_configuration = {
 
 
 class SourceScan(ScanBase):
+    """The chip is read out continuously unil the scan_timeout is reached.
+    The source scan needs no additional trigger information.
+
+    Parameters
+    ----------
+    ScanBase : class
+        Base class for the tuning, scanning and analyzing procedures.
+    """    
     scan_id = 'source_scan'
 
     stop_scan = threading.Event()
@@ -59,7 +67,7 @@ class SourceScan(ScanBase):
                     except ValueError:
                         pass
 
-                except KeyboardInterrupt:  # React on keyboard interupt
+                except KeyboardInterrupt:  # React on keyboard interrupt
                     self.stop_scan.set()
                     self.log.info('Scan was stopped due to keyboard interrupt')
 
