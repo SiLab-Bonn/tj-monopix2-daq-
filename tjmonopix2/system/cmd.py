@@ -9,8 +9,13 @@ from basil.HL.RegisterHardwareLayer import RegisterHardwareLayer
 
 
 class cmd(RegisterHardwareLayer):
-    '''Implement master RD53 configuration and timing interface driver.
-    '''
+    """Implement master RD53 configuration and timing interface driver.
+
+    Parameters
+    ----------
+    RegisterHardwareLayer : class
+        Allows register read write operations
+    """
 
     _registers = {'RESET': {'descr': {'addr': 0, 'size': 8, 'properties': ['writeonly']}},
                   'VERSION': {'descr': {'addr': 0, 'size': 8, 'properties': ['ro']}},
