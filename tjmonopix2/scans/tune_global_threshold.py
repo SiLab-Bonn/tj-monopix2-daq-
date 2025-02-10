@@ -39,14 +39,14 @@ scan_configuration = {
 class GDACTuning(ScanBase):
     """Global threshold tuning by setting the register ICASN.
     The target threshold is set by using the two settings VCAL_LOW and VCAL_HIGH.
-    A charge equal to the target threshold is injected a number of times and ICASN is adapted until 
+    A charge equal to the target threshold is injected a number of times and ICASN is adapted until
     half of the number of injections are measured.
 
     Parameters
     ----------
     ScanBase : bool
         Base class for the tuning, scanning and analyzing procedures.
-    """    
+    """
     scan_id = 'global_threshold_tuning'
 
     def _configure(self, start_column=0, stop_column=512, start_row=0, stop_row=512, VCAL_LOW=30, VCAL_HIGH=60, **_):

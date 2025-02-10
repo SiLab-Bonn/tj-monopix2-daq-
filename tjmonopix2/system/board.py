@@ -15,7 +15,7 @@ class DAQBoard(RegisterHardwareLayer):
     ----------
     RegisterHardwareLayer : class
         Allows register read write operations
-    """    
+    """
 
     _registers = {'RESET': {'descr': {'addr': 0, 'size': 8, 'properties': ['writeonly']}},
                   'VERSION': {'descr': {'addr': 0, 'size': 8, 'properties': ['ro']}},

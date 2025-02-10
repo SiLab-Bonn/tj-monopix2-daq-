@@ -44,7 +44,7 @@ class FifoReadout(object):
     ----------
     object : class
         Main DAQ object
-    """    
+    """
     def __init__(self, daq):
         self.log = logger.setup_derived_logger('FIFO Readout')
 

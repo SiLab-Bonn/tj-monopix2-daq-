@@ -154,7 +154,7 @@ class ScanBase(object):
     ----------
     object : object
         Used for scan configurations
-    """    
+    """
 
     is_parallel_scan = False  # Parallel readout of ExtTrigger-type scans etc.; must be overridden in the derived classes if needed
 

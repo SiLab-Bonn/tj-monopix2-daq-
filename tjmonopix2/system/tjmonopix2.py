@@ -70,7 +70,7 @@ class Register(dict):
     ----------
     dict : dict
         Register dictionary
-    """    
+    """
     def __init__(self, chip, name, address, offset, size, default, value, mode, reset, description):
         self.log = logger.setup_derived_logger('TJ-Monopix2 - Register')
 
@@ -205,7 +205,7 @@ class RegisterObject(OrderedDict):
     ----------
     OrderedDict : class
         Contains information about each register
-    """    
+    """
 
     def __init__(self, chip, lookup_file=None):
         self.chip = chip
@@ -586,7 +586,7 @@ class DoubleShiftPattern(ShiftPatternBase):
     ----------
     ShiftPatternBase : class
         Base shift class
-    """    
+    """
 
     def make_first_mask(self):
         mask = np.zeros(self.dimensions, bool)
@@ -605,7 +605,7 @@ class TJMonoPix2(object):
     Parameters
     ----------
     object : class
-    """    
+    """
 
     """ Map hardware IDs for board identification """
     hw_map = {
@@ -1016,7 +1016,7 @@ class TJMonoPix2(object):
                 indata : binarray
                     Boolean representation of register write command.
         '''
-        if type(address) == str:
+        if type(address) is str:
             address = self.register_name_map[address]
 
         indata = [self.CMD_RDREG]

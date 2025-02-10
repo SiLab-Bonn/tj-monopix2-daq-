@@ -29,7 +29,7 @@ class AnalogScan(ScanBase):
     ----------
     ScanBase : class
         Base class for the tuning, scanning and analyzing procedures.
-    """    
+    """
     scan_id = 'analog_scan'
 
     def _configure(self, start_column=0, stop_column=512, start_row=0, stop_row=512, **_):

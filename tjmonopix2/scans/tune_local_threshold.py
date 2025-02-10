@@ -40,7 +40,7 @@ class TDACTuning(ScanBase):
     ----------
     ScanBase : bool
         Base class for the tuning, scanning and analyzing procedures.
-    """    
+    """
     scan_id = 'local_threshold_tuning'
 
     def _configure(self, start_column=0, stop_column=512, start_row=0, stop_row=512, VCAL_LOW=30, VCAL_HIGH=60, **_):

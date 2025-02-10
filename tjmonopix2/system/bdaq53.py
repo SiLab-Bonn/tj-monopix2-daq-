@@ -23,11 +23,11 @@ VERSION = version('tjmonopix2')
 class BDAQ53(Dut):
     """Main class for BDAQ53 readout system, uses chip specific configurations form the testbench.
     Initializes different DAQ modules (e.g. TDC, TLU, NTC...).
-    
+
     Parameters
     ----------
     Dut : class
-        DAQ and testbench configurations of the DUT 
+        DAQ and testbench configurations of the DUT
     """
     def __init__(self, conf=None, bench_config=None):
         self.log = logger.setup_main_logger()

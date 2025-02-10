@@ -32,7 +32,7 @@ class SourceScan(ScanBase):
     ----------
     ScanBase : class
         Base class for the tuning, scanning and analyzing procedures.
-    """    
+    """
     scan_id = 'source_scan'
 
     stop_scan = threading.Event()
