@@ -10,8 +10,13 @@ from basil.HL.RegisterHardwareLayer import RegisterHardwareLayer
 
 
 class tjmono2_rx(RegisterHardwareLayer):
-    '''TJ-Monopix2 receiver controller interface for tjmono2_rx FPGA module
-    '''
+    """TJ-Monopix2 receiver controller interface for tjmono2_rx FPGA module
+
+    Parameters
+    ----------
+    RegisterHardwareLayer : class
+        Allows register read write operations
+    """    
 
     _registers = {'RESET': {'descr': {'addr': 0, 'size': 8, 'properties': ['writeonly']}},
                   'RX_RESET': {'descr': {'addr': 1, 'size': 8, 'properties': ['writeonly']}},

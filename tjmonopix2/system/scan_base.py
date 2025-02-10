@@ -147,10 +147,14 @@ class ChipContainer:
 
 
 class ScanBase(object):
-    '''
-        Basic run meta class.
+    """ Basic run meta class.
         Base class for scan- / tune- / analyze-class.
-    '''
+
+    Parameters
+    ----------
+    object : object
+        Used for scan configurations
+    """    
 
     is_parallel_scan = False  # Parallel readout of ExtTrigger-type scans etc.; must be overridden in the derived classes if needed
 

@@ -38,6 +38,13 @@ class StopTimeout(Exception):
 
 
 class FifoReadout(object):
+    """Basic class for FIFO functionality.
+
+    Parameters
+    ----------
+    object : class
+        Main DAQ object
+    """    
     def __init__(self, daq):
         self.log = logger.setup_derived_logger('FIFO Readout')
 

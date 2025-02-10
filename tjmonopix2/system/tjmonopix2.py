@@ -64,6 +64,13 @@ def encode_cmd(address, data):
 
 
 class Register(dict):
+    """Base class for register functionality.
+
+    Parameters
+    ----------
+    dict : dict
+        Register dictionary
+    """    
     def __init__(self, chip, name, address, offset, size, default, value, mode, reset, description):
         self.log = logger.setup_derived_logger('TJ-Monopix2 - Register')
 
@@ -190,10 +197,15 @@ class Register(dict):
 
 
 class RegisterObject(OrderedDict):
-    ''' General register object collects all chip registers,
-        creates them on initialization from a yaml file and
-        handles all manipulation of all registers at once.
-    '''
+    """General register object collects all chip registers,
+       creates them on initialization from a yaml file and
+       handles all manipulation of all registers at once.
+
+    Parameters
+    ----------
+    OrderedDict : class
+        Contains information about each register
+    """    
 
     def __init__(self, chip, lookup_file=None):
         self.chip = chip
@@ -531,9 +543,12 @@ class MaskObject(dict):
 
 
 class ShiftPatternBase(object):
-    '''
-        Base class for shift patterns
-    '''
+    """Base class for shift patterns
+
+    Parameters
+    ----------
+    object : class
+    """
 
     def __init__(self, dimensions, mask_step):
         self.dimensions = dimensions
@@ -565,9 +580,13 @@ class ShiftPatternBase(object):
 
 
 class DoubleShiftPattern(ShiftPatternBase):
-    '''
-        Enables pixels along one column with specified distance (mask_step)
-    '''
+    """Enables pixels along one column with specified distance (mask_step)
+
+    Parameters
+    ----------
+    ShiftPatternBase : class
+        Base shift class
+    """    
 
     def make_first_mask(self):
         mask = np.zeros(self.dimensions, bool)
@@ -581,6 +600,12 @@ class DoubleShiftPattern(ShiftPatternBase):
 
 
 class TJMonoPix2(object):
+    """Base class for TJ-Monopix functionality
+
+    Parameters
+    ----------
+    object : class
+    """    
 
     """ Map hardware IDs for board identification """
     hw_map = {
