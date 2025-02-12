@@ -36,6 +36,7 @@ class EudaqScan(pyeudaq.Producer):
     chip_config_file        optional    None            use specific config file, default is latest file
     <chip_register_name>    optional    n/a             overwrite chip register
     chip_sn                 optional    None            specify the chip serial number, default is extracted from the config file
+    handshake_mode          optional    aida            define the TLU handshake mode, either aida or eudet
     """
     scan_id = "eudaq_scan"
 
@@ -77,6 +78,19 @@ class EudaqScan(pyeudaq.Producer):
         bench_conf["modules"]["module_0"]["chip_0"]["chip_config_file"] = eudaqConfig.get("chip_config_file", None)
         bench_conf["general"]["output_directory"] = eudaqConfig.get("output_directory", None)
         bench_conf["modules"]["module_0"]["chip_0"]["chip_sn"] = eudaqConfig.get("chip_sn", None)
+
+        # Handshake Modes 
+        if eudaqConfig.get("handshake_mode","aida") == "eudet":
+            bench_conf["TLU"]["TRIGGER_MODE"] = 3
+            bench_conf["TLU"]["TRIGGER_LOW_TIMEOUT"] = 0
+            bench_conf["TLU"]["TRIGGER_HANDSHAKE_ACCEPT_WAIT_CYCLES"] = 5 
+            bench_conf["TLU"]["DATA_FORMAT"] = 0
+        else:
+            bench_conf["TLU"]["TRIGGER_MODE"] = 2
+            bench_conf["TLU"]["TRIGGER_LOW_TIMEOUT"] = 4
+            bench_conf["TLU"]["TRIGGER_HANDSHAKE_ACCEPT_WAIT_CYCLES"] = 1 
+            bench_conf["TLU"]["DATA_FORMAT"] = 1
+
 
         self.log.debug("Probing if DAQ board is up")
         if host_reachable(daqboard_ip, 24, self.BDAQBoardTimeout):
