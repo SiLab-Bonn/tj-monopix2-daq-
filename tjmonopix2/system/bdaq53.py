@@ -110,6 +110,17 @@ class BDAQ53(Dut):
                     chip_cfgs.append(v)
         return chip_cfgs
 
+    def sel_trigger_clk(self, clock='internal'):
+        """_summary_
+
+        Args:
+            clock (str, optional): _description_. Defaults to 'internal'.
+        """
+        if clock not in ["internal", "external"]:
+            raise ValueError("Invalid trigger clock selection")
+        
+        self["DAQ_CONTROL"]["TRIGGER_CLK_SEL"] = 0 if clock == 'internal' else 1
+
     def set_LEMO_MUX(self, connector='LEMO_MUX_TX0', value=0):
         '''
         Sets the multiplexer in order to select which signal is routed to LEMO ports. So far only used
@@ -128,7 +139,7 @@ class BDAQ53(Dut):
         # TODO:  LEMO_MUX_RX1 and LEMO_MUX_RX0 not yet used
         # According to FW. None means not used.
         lemo_tx0_signals = ['RJ45_CLK', 'CMD_LOOP_START_PULSE', None, None]
-        lemo_tx1_signals = ['RJ45_BUSY', None, None, None]
+        lemo_tx1_signals = ['RJ45_BUSY', 'EXT_TRIGGER_CLK', None, None]
         if connector in ('LEMO_MUX_TX1', 'LEMO_MUX_TX0') and value in range(4):
             self['DAQ_CONTROL'][connector] = value
             self['DAQ_CONTROL'].write()
@@ -269,7 +280,7 @@ class BDAQ53(Dut):
     def set_trigger_data_delay(self, trigger_data_delay):
         self['tlu']['TRIGGER_DATA_DELAY'] = trigger_data_delay
 
-    def configure_tlu_module(self, max_triggers=False):
+    def configure_tlu_module(self, max_triggers=False, aidamode=False):
         self.log.info('Configuring TLU module...')
         self['tlu']['RESET'] = 1    # Reset first TLU module
         for key, value in self.configuration['TLU'].items():    # Set specified registers
@@ -280,6 +291,10 @@ class BDAQ53(Dut):
             self['tlu']['MAX_TRIGGERS'] = int(max_triggers)  # Set maximum number of triggers
         else:
             self['tlu']['MAX_TRIGGERS'] = 0  # unlimited number of triggers
+
+        # AIDA mode
+        if aidamode:
+            self['tlu']['EN_TLU_RESET_TIMESTAMP'] = 1
 
     def get_tlu_erros(self):
         return (self['tlu']['TRIGGER_LOW_TIMEOUT_ERROR_COUNTER'], self['tlu']['TLU_TRIGGER_ACCEPT_ERROR_COUNTER'])

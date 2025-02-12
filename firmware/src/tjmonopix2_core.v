@@ -69,7 +69,9 @@ module tjmonopix2_core #(
     input wire CLK160,
     input wire CLK320,
     input wire CLKCMD,
+    input wire EXT_TRIGGER_CLK,
     output wire MGT_REF_SEL,
+    input wire CLKILA,
 
     // i2c
     inout wire I2C_SCL,
@@ -97,8 +99,6 @@ module tjmonopix2_core #(
     input wire RJ45_TRIGGER,
     input wire RJ45_RESET,
 
-    output wire RESETB_EXT,
-
     // LVDS IO
     output wire LVDS_CMD,
     output wire LVDS_CMD_CLK,
@@ -111,6 +111,7 @@ module tjmonopix2_core #(
     output wire [2:0] NTC_MUX,
 
     `ifdef MIO3
+        output wire RESETB_EXT,
         // CHSYNC output only connected on MIO3 compatible PCBs
         input wire LVDS_CHSYNC_LOCKED_OUT,
         input wire LVDS_CHSYNC_CLK_OUT,
@@ -281,8 +282,11 @@ assign GPIO_MODE = IO[14:12];
 `endif
 
 // GPIO module to access general base-board features
-wire [15:0] IO_CONTROL;
-assign MGT_REF_SEL = ~IO_CONTROL[15];   // invert, because the default value '0' should correspond to the internal clock
+wire [16:0] IO_CONTROL;
+wire TRIGGER_CLK_SEL;
+assign TRIGGER_CLK_SEL = IO_CONTROL[16];
+// assign TRIGGER_CLK_SEL = 0;
+assign MGT_REF_SEL = IO_CONTROL[15];   // Default 0, use SMA input for MGT_REF_CLK0 (=TRIGGER_CLK)
 assign LEMO_MUX = IO_CONTROL[14:7];
 assign NTC_MUX = IO_CONTROL[6:4];
 assign IO_CONTROL[3:0] = GPIO_SENSE;
@@ -291,8 +295,8 @@ gpio #(
     .BASEADDR(GPIO_DAQ_CONTROL_BASEADDR),
     .HIGHADDR(GPIO_DAQ_CONTROL_HIGHADDR),
     .ABUSWIDTH(ABUSWIDTH),
-    .IO_WIDTH(16),
-    .IO_DIRECTION(16'hfff0)
+    .IO_WIDTH(17),
+    .IO_DIRECTION(17'h1fff0)
 ) i_gpio_control (
     .BUS_CLK(BUS_CLK),
     .BUS_RST(BUS_RST),
@@ -361,34 +365,36 @@ gpio #(
     `endif
 `endif
 
-// ----- Reset pulser ----- //
-wire RST_PULSE;
-reg [2:0] IO_FF;
-always @(posedge CLK40) begin
-    if (BUS_RST == 1'b1)
-        IO_FF <= 3'b0;
-    else
-        IO_FF <= {IO_FF[2:0],IO[0]};
-end
+`ifdef MIO3
+    // ----- Reset pulser ----- //
+    wire RST_PULSE;
+    reg [2:0] IO_FF;
+    always @(posedge CLK40) begin
+        if (BUS_RST == 1'b1)
+            IO_FF <= 3'b0;
+        else
+            IO_FF <= {IO_FF[2:0],IO[0]};
+    end
 
-pulse_gen
-#( 
-    .BASEADDR(PULSE_RST_BASEADDR), 
-    .HIGHADDR(PULSE_RST_HIGHADDR),
-    .ABUSWIDTH(ABUSWIDTH)
-) pulse_gen_rst
-(
-    .BUS_CLK(BUS_CLK),
-    .BUS_RST(BUS_RST),
-    .BUS_ADD(BUS_ADD),
-    .BUS_DATA(BUS_DATA),
-    .BUS_RD(BUS_RD),
-    .BUS_WR(BUS_WR),
-    .PULSE_CLK(CLK40),
-    .EXT_START(~IO[0]),
-    .PULSE(RST_PULSE)
-);
-assign RESETB_EXT = ~(IO_FF[1] | RST_PULSE);
+    pulse_gen
+    #( 
+        .BASEADDR(PULSE_RST_BASEADDR), 
+        .HIGHADDR(PULSE_RST_HIGHADDR),
+        .ABUSWIDTH(ABUSWIDTH)
+    ) pulse_gen_rst
+    (
+        .BUS_CLK(BUS_CLK),
+        .BUS_RST(BUS_RST),
+        .BUS_ADD(BUS_ADD),
+        .BUS_DATA(BUS_DATA),
+        .BUS_RD(BUS_RD),
+        .BUS_WR(BUS_WR),
+        .PULSE_CLK(CLK40),
+        .EXT_START(~IO[0]),
+        .PULSE(RST_PULSE)
+    );
+    assign RESETB_EXT = ~(IO_FF[1] | RST_PULSE);
+`endif
 
 `ifdef BDAQ53
     wire CMOS_PULSE_EXT;
@@ -499,7 +505,7 @@ pulse_gen #(
     .BUS_RD(BUS_RD),
     .BUS_WR(BUS_WR),
 
-    .PULSE_CLK(CLK160),
+    .PULSE_CLK(CLKCMD),
     .EXT_START(CMD_LOOP_START),
     .PULSE(CMD_LOOP_START_PULSE)
 );
@@ -545,6 +551,10 @@ rrp_arbiter
 );
 
 // ----- TLU ----- //
+wire TRIGGER_CLK;
+// assign TRIGGER_CLK = TRIGGER_CLK_SEL ? EXT_TRIGGER_CLK : CLK40;
+assign TRIGGER_CLK = EXT_TRIGGER_CLK;
+
 wire TRIGGER_ACKNOWLEDGE_FLAG,TRIGGER_ACCEPTED_FLAG;
 wire [63:0] TIMESTAMP;
 tlu_controller #(
@@ -563,7 +573,7 @@ tlu_controller #(
     .BUS_RD(BUS_RD),
     .BUS_WR(BUS_WR),
 
-    .TRIGGER_CLK(CLK40),
+    .TRIGGER_CLK(TRIGGER_CLK),
 
     .FIFO_READ(TLU_FIFO_READ),
     .FIFO_EMPTY(TLU_FIFO_EMPTY),
@@ -591,7 +601,7 @@ assign EXT_START_PULSE_VETO = TRIGGER_ACCEPTED_FLAG;
 wire VETO_TLU_PULSE;
 
 // set acknowledge when veto returns to low
-pulse_gen_rising i_pulse_gen_rising_tlu_veto(.clk_in(CLK40), .in(~VETO_TLU_PULSE), .out(TRIGGER_ACKNOWLEDGE_FLAG));
+pulse_gen_rising i_pulse_gen_rising_tlu_veto(.clk_in(TRIGGER_CLK), .in(~VETO_TLU_PULSE), .out(TRIGGER_ACKNOWLEDGE_FLAG));
 
 pulse_gen #(
     .BASEADDR(PULSER_VETO_BASEADDR),
@@ -605,7 +615,7 @@ pulse_gen #(
     .BUS_RD(BUS_RD),
     .BUS_WR(BUS_WR),
 
-    .PULSE_CLK(CLK40),
+    .PULSE_CLK(TRIGGER_CLK),
     .EXT_START(EXT_START_PULSE_VETO),
     .PULSE(VETO_TLU_PULSE)
 );
@@ -690,5 +700,6 @@ tjmono2_rx #(
     .BUS_RD(BUS_RD),
     .BUS_WR(BUS_WR)
 );
+
 
 endmodule
